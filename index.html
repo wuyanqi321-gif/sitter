@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SITTER — find your twin at the museum</title>
+  <meta name="description" content="Upload a photo. We'll find the famous portrait that looks like you. Then meet them — face to face." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream:        #F2EBDD;
+      --cream-deep:   #E6DCC5;
+      --ivory:        #FBF7EE;
+      --ink:          #1B160F;
+      --ink-soft:     #4A3F2E;
+      --ink-faint:    #8C7E66;
+      --gilt:         #B58432;
+      --gilt-soft:    #C9A05A;
+      --vermillion:   #862818;
+      --shadow:       rgba(27, 22, 15, 0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      pointer-events: none; opacity: 0.5; z-index: 1;
+      background-image:
+        radial-gradient(circle at 30% 20%, rgba(181, 132, 50, 0.04) 0, transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(134, 40, 24, 0.03) 0, transparent 40%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+    }
+
+    .page { position: relative; z-index: 2; }
+
+    /* HEADER */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 32px;
+      max-width: 1240px; margin: 0 auto;
+    }
+    @media (max-width: 640px) { header { padding: 18px 20px; } }
+
+    .wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600; font-size: 24px;
+      letter-spacing: 0.18em;
+      color: var(--ink);
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .wordmark::before {
+      content: ''; display: inline-block;
+      width: 9px; height: 9px;
+      background: var(--vermillion);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px var(--cream), 0 0 0 4px var(--vermillion);
+    }
+    .wordmark .small {
+      font-weight: 300; letter-spacing: 0.22em;
+      font-size: 22px; margin-left: 2px;
+    }
+
+    nav.top a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 1px solid transparent;
+      transition: border-color 200ms ease;
+    }
+    nav.top a:hover { border-bottom-color: var(--ink-soft); }
+
+    /* HERO */
+    .hero {
+      padding: 60px 32px 40px;
+      max-width: 980px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    @media (max-width: 640px) { .hero { padding: 32px 20px 28px; } }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 28px;
+    }
+
+    .headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400; font-style: italic;
+      font-size: clamp(40px, 7vw, 84px);
+      line-height: 1.0;
+      color: var(--ink);
+      margin: 0 0 26px;
+      letter-spacing: -0.01em;
+    }
+    .headline .you {
+      font-style: normal; font-weight: 500;
+      color: var(--vermillion);
+    }
+    .headline .strike {
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+      color: var(--ink-faint);
+      font-style: normal; font-weight: 300;
+    }
+
+    .subhead {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: clamp(17px, 2.2vw, 21px);
+      line-height: 1.5;
+      color: var(--ink-soft);
+      max-width: 540px;
+      margin: 0 auto 40px;
+    }
+
+    /* DROP ZONE */
+    .drop {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 48px 28px;
+      border: 1.5px dashed var(--ink-faint);
+      border-radius: 6px;
+      background: var(--ivory);
+      cursor: pointer; position: relative;
+      transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .drop:hover, .drop.over {
+      border-color: var(--vermillion);
+      background: #FCF9F1;
+      transform: translateY(-1px);
+    }
+    .drop.over { border-style: solid; }
+    .drop input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .drop .icon {
+      width: 38px; height: 38px;
+      stroke: var(--ink-soft); fill: none; stroke-width: 1.5;
+    }
+    .drop .label {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 22px;
+      color: var(--ink);
+    }
+    .drop .sublabel {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    .helper {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-top: 22px; text-align: center;
+    }
+
+    /* LOADING */
+    .loading { display: none; max-width: 540px; margin: 32px auto 0; text-align: center; }
+    .loading.visible { display: block; }
+    .loading .spinner-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 22px;
+      color: var(--ink); margin-bottom: 8px;
+    }
+    .loading .spinner-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .loading .dots {
+      display: inline-block; width: 1.5em; text-align: left;
+    }
+
+    /* ERROR */
+    .error-box {
+      display: none;
+      max-width: 540px;
+      margin: 24px auto 0;
+      padding: 14px 18px;
+      border-left: 2px solid var(--vermillion);
+      background: rgba(134, 40, 24, 0.06);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--ink);
+      text-align: left;
+    }
+    .error-box.visible { display: block; }
+    .error-box .err-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase; font-style: normal;
+      color: var(--vermillion);
+      margin-bottom: 4px;
+    }
+
+    /* FRIEZE */
+    .frieze-section {
+      margin-top: 56px; padding-bottom: 40px;
+      position: relative; overflow: hidden;
+    }
+    .frieze-label {
+      max-width: 1240px;
+      margin: 0 auto 14px; padding: 0 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--ink-faint);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .frieze-label::before, .frieze-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--ink-faint); opacity: 0.4;
+    }
+    .frieze {
+      display: flex; gap: 0; width: 100%;
+      height: clamp(180px, 32vw, 320px);
+      overflow: hidden;
+      border-top: 1px solid rgba(74, 63, 46, 0.2);
+      border-bottom: 1px solid rgba(74, 63, 46, 0.2);
+      background: var(--ink);
+    }
+    .frieze .panel {
+      flex: 1 1 0; min-width: 0;
+      position: relative; overflow: hidden; cursor: pointer;
+      transition: flex 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .frieze .panel img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center 30%;
+      display: block;
+      filter: contrast(1.02) saturate(1.05);
+      transition: transform 600ms ease, filter 300ms ease;
+    }
+    .frieze .panel:hover { flex: 2 1 0; }
+    .frieze .panel:hover img { transform: scale(1.03); filter: contrast(1.08) saturate(1.1); }
+    .frieze .caption {
+      position: absolute; left: 12px; bottom: 12px; right: 12px;
+      color: var(--ivory);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0; transition: opacity 200ms ease;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .frieze .panel:hover .caption { opacity: 1; }
+
+    /* HOW IT WORKS */
+    .how {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 56px 32px 0;
+      text-align: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    @media (max-width: 640px) {
+      .how { grid-template-columns: 1fr; gap: 20px; padding: 40px 20px 0; }
+    }
+    .how-step .num {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 36px;
+      color: var(--gilt);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .how-step .title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-soft); margin-bottom: 8px;
+    }
+    .how-step .desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px; color: var(--ink-soft);
+      line-height: 1.5;
+    }
+
+    /* FOOTER */
+    footer {
+      max-width: 1240px;
+      margin: 80px auto 0;
+      padding: 32px 32px 40px;
+      border-top: 1px solid rgba(74, 63, 46, 0.2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    @media (max-width: 640px) {
+      footer { padding: 24px 20px 32px; flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+
+    /* =========================================================
+       RESULT VIEW
+    ========================================================= */
+    #result-view {
+      display: none;
+      position: fixed; inset: 0; z-index: 30;
+      overflow-y: auto;
+    }
+    #result-view.active { display: block; }
+
+    .painting-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--ink);
+      transition: background-image 600ms ease;
+    }
+    .painting-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, rgba(27,22,15,0.40) 0%, rgba(27,22,15,0.55) 60%, rgba(27,22,15,0.75) 100%),
+        radial-gradient(ellipse at 65% 35%, transparent 20%, rgba(27,22,15,0.4) 90%);
+    }
+
+    .result-shell {
+      position: relative; z-index: 2;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      color: var(--ivory);
+    }
+
+    .result-topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 24px 32px;
+      max-width: 1240px;
+      margin: 0 auto; width: 100%;
+    }
+    @media (max-width: 640px) { .result-topbar { padding: 18px 20px; } }
+    .result-topbar .eyebrow {
+      color: rgba(251, 247, 238, 0.7);
+      margin: 0;
+    }
+    .result-topbar .reset-btn {
+      background: none; border: none; cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.85);
+      padding: 6px 0;
+      border-bottom: 1px solid transparent;
+      transition: border-color 200ms ease;
+    }
+    .result-topbar .reset-btn:hover {
+      border-bottom-color: rgba(251, 247, 238, 0.85);
+      color: var(--ivory);
+    }
+
+    .result-stage {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 32px 60px;
+      gap: 32px;
+      max-width: 1240px;
+      margin: 0 auto; width: 100%;
+    }
+    @media (min-width: 768px) {
+      .result-stage {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;  /* push photo to the left instead of centering */
+        gap: 96px;                     /* widen gap so match-info still feels balanced */
+        padding: 40px 48px 80px 80px;  /* extra left padding keeps card off the edge */
+      }
+    }
+
+    /* Floating photo card */
+    .photo-card {
+      margin-left: max(-6vw, -40px);  /* small leftward nudge, capped so it stays on-screen on small phones */
+      background: transparent;
+      padding: 0;
+      border-radius: 10px;
+      /* Warm gradient aura — subtle gilt warmth on top, faint vermillion below.
+         Dialed down so it reads as soft gallery lighting, not a heavy glow. */
+      box-shadow:
+        0 -10px 32px -12px rgba(201, 160, 90, 0.20),   /* gilt aura, top */
+        0 18px 40px -16px rgba(134, 40, 24, 0.18),     /* vermillion aura, bottom */
+        0 0 60px -24px rgba(201, 160, 90, 0.15),       /* soft all-around glow */
+        0 8px 22px -14px rgba(0, 0, 0, 0.20);          /* depth shadow */
+      transform: rotate(-1.5deg);
+      width: 260px;
+      max-width: 80vw;
+      position: relative;
+      flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+      .photo-card { width: 320px; }
+    }
+    .photo-card:hover { transform: rotate(0deg) scale(1.02); transition: transform 500ms ease; }
+    .photo-card .frame {
+      aspect-ratio: 4 / 5;
+      background: var(--cream-deep);
+      overflow: hidden;
+      border-radius: 10px;  /* matches the outer card now that there's no padding */
+    }
+    .photo-card img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .photo-card::after {
+      content: '— the sitter, today —';
+      position: absolute;
+      left: 0; right: 0; bottom: -28px;
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 16px;
+      color: rgba(251, 247, 238, 0.85);
+    }
+
+    /* Match info */
+    .match-info { max-width: 360px; text-align: left; }
+    @media (max-width: 767px) {
+      .match-info { text-align: center; max-width: 100%; }
+    }
+    .match-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.7);
+      margin-bottom: 12px;
+    }
+    .match-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(36px, 6vw, 56px);
+      line-height: 1.05;
+      color: var(--ivory);
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .match-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.75);
+      margin-bottom: 18px;
+    }
+    .similarity-pill {
+      display: inline-flex;
+      align-items: baseline; gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid rgba(201, 160, 90, 0.6);
+      border-radius: 999px;
+      color: var(--gilt-soft);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .similarity-pill .pct {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 18px;
+      letter-spacing: 0; font-weight: 500;
+      color: var(--gilt-soft);
+    }
+
+    .composite-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 14px 22px;
+      border: 1px solid var(--ivory);
+      background: var(--ivory);
+      color: var(--ink);
+      cursor: pointer;
+      border-radius: 0;
+      display: inline-flex; align-items: center; gap: 10px;
+      transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+    .composite-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: var(--vermillion);
+      border-color: var(--vermillion);
+      color: var(--ivory);
+    }
+    .composite-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .composite-btn .arrow { transition: transform 200ms ease; }
+    .composite-btn:hover:not(:disabled) .arrow { transform: translateX(3px); }
+
+    .quota-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.55);
+      margin-top: 10px;
+    }
+
+    /* Custom-request input */
+    .custom-request-wrap {
+      margin-bottom: 18px;
+    }
+    .custom-request-label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.55);
+      margin-bottom: 8px;
+    }
+    .custom-request-input {
+      width: 100%;
+      max-width: 360px;
+      padding: 10px 14px;
+      background: rgba(251, 247, 238, 0.08);
+      border: 1px solid rgba(251, 247, 238, 0.2);
+      border-radius: 4px;
+      color: var(--ivory);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 15px;
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+    .custom-request-input::placeholder {
+      color: rgba(251, 247, 238, 0.4);
+      font-style: italic;
+    }
+    .custom-request-input:focus {
+      outline: none;
+      border-color: var(--gilt-soft);
+      background: rgba(251, 247, 238, 0.12);
+    }
+    .custom-request-input:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    .composite-disclaimer {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 12px;
+      color: rgba(251, 247, 238, 0.45);
+      margin-top: 8px;
+      max-width: 320px;
+      line-height: 1.4;
+    }
+
+    /* Composite */
+    .composite-section {
+      display: none;
+      padding: 0 32px 60px;
+      max-width: 760px;
+      margin: 0 auto; width: 100%;
+    }
+    .composite-section.visible { display: block; }
+    .composite-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(251, 247, 238, 0.75);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .composite-frame {
+      background: var(--ivory);
+      padding: 14px 14px 18px;
+      box-shadow:
+        0 18px 40px -12px rgba(0,0,0,0.5),
+        0 36px 70px -28px rgba(0,0,0,0.4);
+    }
+    .composite-frame img {
+      width: 100%; display: block;
+      opacity: 0; transition: opacity 1.2s ease;
+    }
+    .composite-frame img.loaded { opacity: 1; }
+    .composite-frame .composite-loading {
+      aspect-ratio: 4 / 5;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--cream-deep);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 18px;
+      color: var(--ink-soft);
+      position: relative; overflow: hidden;
+    }
+    .composite-frame .composite-loading::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .composite-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 12px; gap: 12px;
+    }
+    .composite-meta .caption {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+    .composite-meta .download {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-bottom: 1px solid var(--ink-soft);
+      padding-bottom: 1px;
+      transition: color 180ms ease;
+    }
+    .composite-meta .download:hover { color: var(--vermillion); }
+
+    /* Gallery label */
+    .gallery-label {
+      align-self: flex-start;
+      margin: 0 32px 24px;
+      max-width: 320px;
+      background: var(--ivory);
+      box-shadow: 0 14px 30px -10px rgba(0,0,0,0.4);
+    }
+    @media (min-width: 768px) {
+      .gallery-label { margin: 0 48px 32px; }
+    }
+    .gallery-label .band {
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ivory); text-align: center;
+      background: var(--vermillion);
+    }
+    .gallery-label .body { padding: 12px 16px 14px; }
+    .gallery-label .gl-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 18px;
+      color: var(--ink); line-height: 1.15;
+      margin-bottom: 4px;
+    }
+    .gallery-label .gl-artist {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+  </style>
+</head>
+<body>
+
+<div class="page" id="page">
+
+  <header>
+    <div class="wordmark">SITTER<span class="small">·</span></div>
+    <nav class="top">
+      <a href="#how">How it works</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow fade-up">est. 2026 · gallery of doubles</div>
+    <h1 class="headline fade-up delay-1">
+      <span class="strike">you</span>, but oil-painted in <em>1665.</em>
+    </h1>
+    <p class="subhead fade-up delay-2">
+      Upload a selfie. We&rsquo;ll find the famous painting whose subject looks just like you. Then meet them — face to face, framed in their world.
+    </p>
+
+    <label class="drop fade-up delay-3" id="drop">
+      <input type="file" id="fileInput" accept="image/*" />
+      <svg class="icon" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M12 17V3M12 3l-5 5M12 3l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="label">drop a photo here, or tap to upload</div>
+      <div class="sublabel">jpeg · png · heic — never leaves your browser</div>
+    </label>
+
+    <div class="loading" id="loading" aria-live="polite">
+      <div class="spinner-text" id="loadingText"><span id="loadingMain">awakening the gallery</span><span class="dots" id="dots">.</span></div>
+      <div class="spinner-sub" id="loadingSub">first visit may take a moment</div>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      <div class="err-eyebrow">a small disturbance</div>
+      <div id="errorText">—</div>
+    </div>
+
+    <div class="helper">no account · no email · your photo never leaves the browser in v1</div>
+  </section>
+
+  <section class="frieze-section">
+    <div class="frieze-label">a few of our sitters</div>
+    <div class="frieze" id="frieze"></div>
+  </section>
+
+  <section class="how" id="how">
+    <div class="how-step">
+      <div class="num">i.</div>
+      <div class="title">Upload</div>
+      <div class="desc">A clear photo of your face. Stays in your browser.</div>
+    </div>
+    <div class="how-step">
+      <div class="num">ii.</div>
+      <div class="title">Match</div>
+      <div class="desc">We compare your face against twelve canonical portraits and surface your closest twin.</div>
+    </div>
+    <div class="how-step">
+      <div class="num">iii.</div>
+      <div class="title">Composite</div>
+      <div class="desc">Reimagined in the master's hand — a new painting summoned to share.</div>
+    </div>
+  </section>
+
+  <footer>
+    <span>SITTER · v0.1 demo</span>
+    <span>portraits via wikimedia commons · public domain</span>
+  </footer>
+
+</div>
+
+<section id="result-view">
+  <div class="painting-bg" id="paintingBg"></div>
+
+  <div class="result-shell">
+    <div class="result-topbar">
+      <div class="eyebrow">No. 001 · the resemblance</div>
+      <button class="reset-btn" id="resetBtn">← begin again</button>
+    </div>
+
+    <div class="result-stage">
+      <div class="photo-card">
+        <div class="frame">
+          <img id="userPhotoDisplay" alt="Your photograph" />
+        </div>
+      </div>
+
+      <div class="match-info">
+        <div class="match-eyebrow">your painted twin</div>
+        <h2 class="match-title" id="matchTitle">—</h2>
+        <div class="match-meta" id="matchMeta">—</div>
+        <div class="similarity-pill">
+          <span>kindred score</span>
+          <span class="pct" id="matchPct">—</span>
+        </div>
+        <div class="custom-request-wrap">
+          <label class="custom-request-label" for="customRequest">a personal touch (optional)</label>
+          <input
+            type="text"
+            id="customRequest"
+            class="custom-request-input"
+            maxlength="200"
+            placeholder="a personal note for the painter (coming soon)…"
+            disabled
+            autocomplete="off"
+          />
+        </div>
+        <div>
+          <button class="composite-btn" id="compositeBtn">
+            <span id="compositeBtnText">Generate the composite</span>
+            <span class="arrow">→</span>
+          </button>
+          <div class="quota-text" id="quotaText">3 remaining today</div>
+          <div class="composite-disclaimer">— your photo is sent to our AI partner for generation; not stored —</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composite-section" id="compositeSection">
+      <div class="composite-eyebrow">— reimagined in the master's hand —</div>
+      <div class="composite-frame">
+        <div class="composite-loading" id="compositeLoading">mixing the pigments…</div>
+        <img id="compositeImg" alt="Composite painting" style="display:none;" />
+        <div class="composite-meta" id="compositeMeta" style="display:none;">
+          <div class="caption" id="compositeCaption">—</div>
+          <a class="download" id="compositeDownload" href="#" download>Download ↓</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-label">
+      <div class="band" id="labelBand">Gallery Label</div>
+      <div class="body">
+        <div class="gl-title" id="labelTitle">—</div>
+        <div class="gl-artist" id="labelArtist">—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<script>
+// Painting filenames on Wikimedia Commons. We resolve them to real, CORS-enabled
+// image URLs at runtime via the Commons API (origin=*) — this avoids the 400/CORS
+// failures that hardcoded /thumb/X/XX/ URLs hit.
+const PAINTINGS = [
+  { id: 'mona_lisa',       title: 'Mona Lisa',                       artist: 'Leonardo da Vinci',     year: 'c. 1503–1519', band: '#4A5A6A',
+    file: 'Mona Lisa, by Leonardo da Vinci, from C2RMF retouched.jpg',
+    style: 'Italian High Renaissance, sfumato glazes, soft chiaroscuro',
+    character: 'a serene Italian Renaissance woman with long dark hair parted in the middle, wearing a dark olive-green dress with a sheer veil, an enigmatic faint smile, hands folded gently in her lap' },
+  { id: 'pearl_earring',   title: 'Girl with a Pearl Earring',       artist: 'Johannes Vermeer',      year: 'c. 1665',      band: '#4A5A6A',
+    file: '1665 Girl with a Pearl Earring.jpg',
+    style: 'Dutch Golden Age, luminous skin, ultramarine and ochre, soft turn of the head',
+    character: 'a young Dutch girl turning over her shoulder, soft luminous skin, wearing a striking ultramarine-blue and yellow turban, a single luminous pearl earring catching the light, lips slightly parted' },
+  { id: 'van_gogh_self',   title: 'Self-Portrait',                   artist: 'Vincent van Gogh',      year: '1889',         band: '#9CAB95',
+    file: 'Vincent van Gogh - Self-Portrait - Google Art Project (454045).jpg',
+    style: 'Post-Impressionist, swirling impasto brushwork, turquoise and ochre',
+    character: 'a 19th-century Dutch painter with a fiery red-orange beard and intense pale-blue eyes, wearing a dark teal jacket, swirling brushstrokes radiating around the head, post-impressionist palette' },
+  { id: 'lady_ermine',     title: 'Lady with an Ermine',             artist: 'Leonardo da Vinci',     year: 'c. 1489–1490', band: '#4A5A6A',
+    file: 'The Lady with an Ermine.jpg',
+    style: 'Italian Renaissance, three-quarter turn, lustrous skin, dark ground',
+    character: 'a young Italian Renaissance noblewoman turning gracefully, lustrous porcelain skin, hair pulled back in a black snood, wearing a richly embroidered dark gown with red and gold sleeves, cradling a small white ermine in her arms' },
+  { id: 'la_loge',         title: 'La Loge',                         artist: 'Pierre-Auguste Renoir', year: '1874',         band: '#3D8B7E',
+    file: 'La Loge de P.-A. Renoir (Fondation Vuitton, Paris) (46499625955).jpg',
+    style: 'French Impressionist, feathered brushwork, pearls and striped silk, theatre light',
+    character: 'a fashionable young Parisian woman in a theatre box, soft brown hair, wearing an elaborate black-and-white striped silk gown with a string of pearls, holding a delicate opera glass, dreamy expression, soft Impressionist brushwork' },
+  { id: 'pope_innocent',   title: 'Portrait of Pope Innocent X',     artist: 'Diego Velázquez',       year: '1650',         band: '#862818',
+    file: 'Retrato del Papa Inocencio X. Roma, by Diego Velázquez.jpg',
+    style: 'Spanish Baroque, scarlet and white, piercing gaze, masterful realism',
+    character: 'an elderly Spanish Baroque Pope with stern penetrating gaze, white beard, wearing a vivid scarlet silk cape over a white linen rochet, a small white skullcap, seated in a high-backed throne' },
+  { id: 'blue_boy',        title: 'The Blue Boy',                    artist: 'Thomas Gainsborough',   year: 'c. 1770',      band: '#4A5A6A',
+    file: 'The Blue Boy.jpg',
+    style: 'English Rococo, flowing satin, romantic landscape ground, refined elegance',
+    character: 'a young English Rococo aristocrat with shoulder-length brown curls, dressed entirely in cornflower-blue satin with lace collar and ribbon trim, holding a wide-brimmed plumed hat, confident gentle stance, painted landscape ground' },
+  { id: 'adele',           title: 'Portrait of Adele Bloch-Bauer I', artist: 'Gustav Klimt',          year: '1907',         band: '#B58432',
+    file: 'Gustav Klimt 046.jpg',
+    style: 'Vienna Secession, gold leaf, ornamental flat patterning, jewel skin',
+    character: 'an Austrian woman with dark hair and pale skin, wearing an elaborate Vienna-Secession golden gown covered in geometric Byzantine-style patterns, eyes painted with kohl, surrounded by shimmering gold-leaf ornament and spirals' },
+  { id: 'vigee_lebrun',    title: 'Self-Portrait in a Straw Hat',    artist: 'Élisabeth Vigée Le Brun', year: '1782',         band: '#9CAB95',
+    file: 'Self-portrait in a Straw Hat by Elisabeth-Louise Vigée-Lebrun.jpg',
+    style: '18th-century French portraiture, warm outdoor daylight, soft Rococo brushwork, blue silk and feathered hat',
+    character: 'a confident 18th-century Frenchwoman with soft brown curls falling over her shoulders, wearing a wide-brimmed straw hat trimmed with white feathers and a pink ribbon, dressed in a low-cut blue silk gown with white lace fichu, holding a palette and brushes, warm outdoor daylight, three-quarter pose, gentle direct gaze' },
+  { id: 'rembrandt_self',  title: 'Self-Portrait at the Age of 63',  artist: 'Rembrandt van Rijn',    year: '1669',         band: '#5C574E',
+    file: 'Rembrandt van Rijn - Self-Portrait - Google Art Project.jpg',
+    style: 'Dutch Baroque, golden chiaroscuro, weathered humanity, painterly impasto',
+    character: 'an aged Dutch master with weathered worn face, watchful intelligent eyes, wearing a soft brown velvet beret and dark robe, deep golden chiaroscuro emerging from shadow, painterly impasto brushwork' },
+  { id: 'milkmaid',        title: 'The Milkmaid',                    artist: 'Johannes Vermeer',      year: 'c. 1657–1658', band: '#4A5A6A',
+    file: 'Johannes Vermeer - Het melkmeisje - Google Art Project.jpg',
+    style: 'Dutch Golden Age, soft northern light, ultramarine and lemon yellow',
+    character: 'a sturdy young Dutch kitchen-maid with rosy round cheeks, hair tucked under a white linen cap, wearing a lemon-yellow bodice with ultramarine-blue apron and rolled sleeves, calmly pouring milk from an earthenware jug, soft northern window-light' },
+  { id: 'klimt_fan',       title: 'Lady with a Fan',                 artist: 'Gustav Klimt',          year: '1917–1918',    band: '#B58432',
+    file: 'Gustav Klimt - Dame mit Fächer.jpeg',
+    style: 'Late Vienna Secession, painterly chinoiserie, golden yellow ground with decorative birds and flowers, freer brushwork than his gold period',
+    character: 'an elegant woman with soft dark curly hair piled atop her head, luminous pale skin with rosy cheeks, dark dreamy eyes, soft red lips, bare shoulders, draped in a patterned silk robe slipping off one shoulder, holding a large decorative fan, set against a lush golden background of stylized chinoiserie birds and lotus flowers' },
+  { id: 'elizabeth_armada', title: 'The Armada Portrait',            artist: 'English School',        year: 'c. 1588',      band: '#5C574E',
+    file: 'Elizabeth I (Armada Portrait).jpg',
+    style: 'Elizabethan English court painting, rich oil glazes, flat ornate detail combined with naturalistic face, allegorical Tudor symbolism',
+    character: 'a regal Tudor queen with pale alabaster skin and distinctive red-gold curled hair worn high, ornamented with pearls and a jeweled crown, intelligent piercing eyes and faint cool smile, wearing an elaborate black-and-gold Tudor gown adorned with pearls and bows' },
+];
+
+// Ask Commons for the actual file URL — origin=* enables CORS so face-api can
+// read the image pixels for embedding extraction.
+async function resolveImageUrl(filename) {
+  const params = new URLSearchParams({
+    action: 'query',
+    titles: `File:${filename}`,
+    prop: 'imageinfo',
+    iiprop: 'url',
+    iiurlwidth: '720',  // Ask for a reasonably-sized thumbnail
+    format: 'json',
+    origin: '*'
+  });
+  const resp = await fetch(`https://commons.wikimedia.org/w/api.php?${params.toString()}`);
+  const data = await resp.json();
+  const pages = data.query.pages;
+  const pageId = Object.keys(pages)[0];
+  if (pageId === '-1' || !pages[pageId].imageinfo) return null;
+  const info = pages[pageId].imageinfo[0];
+  // Prefer the thumbnail URL if available (smaller, faster), else full URL
+  return info.thumburl || info.url;
+}
+
+async function resolveAllPaintingUrls(progressFn) {
+  const results = await Promise.all(PAINTINGS.map(async (p, i) => {
+    try {
+      // If `file` is already a full URL (e.g. a GitHub raw URL for an AI-generated
+      // base scene without a real public-domain reference), use it directly and
+      // skip the Wikimedia Commons API lookup.
+      if (/^https?:\/\//i.test(p.file)) {
+        p.img = p.file;
+        return { ok: true, id: p.id };
+      }
+      const url = await resolveImageUrl(p.file);
+      if (url) {
+        p.img = url;
+        return { ok: true, id: p.id };
+      }
+      return { ok: false, id: p.id, reason: 'not found' };
+    } catch (e) {
+      return { ok: false, id: p.id, reason: e.message };
+    }
+  }));
+  const failed = results.filter(r => !r.ok);
+  if (failed.length) console.warn('URL resolution failed for:', failed);
+  return results.filter(r => r.ok).length;
+}
+
+const STATE = {
+  modelsLoaded: false,
+  urlsResolved: false,
+  paintingDescriptors: null,
+  userDescriptor: null,
+  matchedPainting: null,
+  userPhotoDataUrl: null,
+};
+
+const QUOTA_KEY = 'sitter.compositeQuota.v1';
+const EMBED_CACHE_KEY = 'sitter.paintingDescriptors.v5'; // bumped: removed pan_yuliang_style and bijinga_oil
+const QUOTA_PER_DAY = 3;
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model';
+
+const $ = (sel) => document.querySelector(sel);
+
+/* FRIEZE — populated after URLs resolve */
+const friezeEl = $('#frieze');
+function renderFrieze() {
+  friezeEl.innerHTML = '';
+  PAINTINGS.forEach(p => {
+    if (!p.img) return; // skip unresolved
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = `
+      <img src="${p.img}" alt="${p.title}" loading="lazy" />
+      <div class="caption">${p.artist} · ${p.year}</div>
+    `;
+    friezeEl.appendChild(panel);
+  });
+}
+
+// Kick off URL resolution as soon as the page loads (in parallel with anything else).
+// This populates p.img on every painting before the user even uploads a photo.
+const urlsReadyPromise = resolveAllPaintingUrls().then(count => {
+  STATE.urlsResolved = true;
+  console.log(`Resolved ${count} of ${PAINTINGS.length} painting URLs`);
+  renderFrieze();
+  return count;
+});
+
+/* UPLOAD */
+const drop      = $('#drop');
+const fileInput = $('#fileInput');
+const loading   = $('#loading');
+const loadingMain = $('#loadingMain');
+const loadingSub  = $('#loadingSub');
+const dotsEl    = $('#dots');
+const errorBox  = $('#errorBox');
+const errorText = $('#errorText');
+const helperEl  = document.querySelector('.helper');
+
+['dragenter','dragover'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('over'); });
+});
+['dragleave','drop'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.remove('over'); });
+});
+drop.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+});
+
+function showLoading(main, sub = '') {
+  loading.classList.add('visible');
+  drop.style.display = 'none';
+  helperEl.style.display = 'none';
+  loadingMain.textContent = main;
+  loadingSub.textContent = sub;
+}
+function hideLoading() {
+  loading.classList.remove('visible');
+  // Restore drop zone + helper, which showLoading hid via inline styles.
+  // Clearing the inline style lets the CSS class take over again.
+  drop.style.display = '';
+  helperEl.style.display = '';
+}
+function showError(msg) {
+  errorBox.classList.add('visible');
+  errorText.textContent = msg;
+  drop.style.display = '';
+  helperEl.style.display = '';
+}
+function clearError() { errorBox.classList.remove('visible'); }
+
+let dotsInterval = null;
+function startDots() {
+  let n = 1; stopDots();
+  dotsInterval = setInterval(() => {
+    dotsEl.textContent = '.'.repeat(((n++) % 4) + 1);
+  }, 380);
+}
+function stopDots() {
+  if (dotsInterval) { clearInterval(dotsInterval); dotsInterval = null; }
+}
+
+/* FACE-API */
+async function loadModels() {
+  if (STATE.modelsLoaded) return;
+  // Defensive check: face-api.js is loaded via a separate <script> tag from a CDN.
+  // If the CDN was blocked (content blocker, network failure, etc), `faceapi`
+  // won't exist and the original error ("can't find variable: faceapi") is
+  // confusing for users. Replace it with a clear, actionable message.
+  if (typeof faceapi === 'undefined') {
+    throw new Error(
+      'Face recognition library failed to load. This is usually caused by an ad blocker or content blocker on your browser. Try disabling content blockers for this site and reload.'
+    );
+  }
+  showLoading('calling the curators', 'loading face recognition models');
+  startDots();
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  showLoading('studying the brushwork', 'reading facial landmarks');
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  showLoading('memorising the faces', 'preparing the recognition net');
+  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+  STATE.modelsLoaded = true;
+}
+
+async function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Image failed: ${src}`));
+    img.src = src;
+  });
+}
+
+async function computePaintingDescriptors() {
+  // try cache (must match current painting set exactly)
+  try {
+    const cached = JSON.parse(localStorage.getItem(EMBED_CACHE_KEY) || 'null');
+    const currentIds = PAINTINGS.map(p => p.id).sort().join(',');
+    if (cached && cached._ids === currentIds && Array.isArray(cached.items) && cached.items.length > 0) {
+      STATE.paintingDescriptors = cached.items.map(c => ({
+        id: c.id, descriptor: new Float32Array(c.descriptor)
+      }));
+      return;
+    }
+  } catch (e) {}
+
+  const out = [];
+  const failed = [];
+  const detectorOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.3 });
+
+  for (let i = 0; i < PAINTINGS.length; i++) {
+    const p = PAINTINGS[i];
+    if (!p.img) {
+      failed.push({ id: p.id, reason: 'url not resolved' });
+      continue;
+    }
+    showLoading(`examining ${p.title}`, `${i+1} of ${PAINTINGS.length} sitters`);
+    try {
+      const img = await loadImageEl(p.img);
+      const result = await faceapi
+        .detectSingleFace(img, detectorOpts)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (result && result.descriptor) {
+        out.push({ id: p.id, descriptor: result.descriptor });
+      } else {
+        failed.push({ id: p.id, reason: 'no face detected' });
+        console.warn('No face detected in', p.id);
+      }
+    } catch (e) {
+      failed.push({ id: p.id, reason: 'image load failed' });
+      console.warn('Painting load failed:', p.id, e);
+    }
+  }
+
+  if (failed.length) {
+    console.warn(`${failed.length} paintings failed:`, failed);
+  }
+  console.log(`${out.length} of ${PAINTINGS.length} painting embeddings computed.`);
+
+  STATE.paintingDescriptors = out;
+
+  // Only cache if we got most of them — partial caches should re-fetch next time
+  if (out.length >= Math.ceil(PAINTINGS.length * 0.75)) {
+    const toStore = {
+      _ids: PAINTINGS.map(p => p.id).sort().join(','),
+      items: out.map(o => ({ id: o.id, descriptor: Array.from(o.descriptor) }))
+    };
+    try { localStorage.setItem(EMBED_CACHE_KEY, JSON.stringify(toStore)); } catch (e) {}
+  }
+}
+
+async function handleFile(file) {
+  if (!file.type.startsWith('image/')) {
+    showError('Please choose an image file (JPEG, PNG, HEIC).');
+    return;
+  }
+  clearError();
+
+  const dataUrl = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.readAsDataURL(file);
+  });
+  STATE.userPhotoDataUrl = dataUrl;
+
+  try {
+    showLoading('resolving the gallery', 'fetching painting urls from wikimedia');
+    startDots();
+    const resolvedCount = await urlsReadyPromise;
+    if (resolvedCount < 3) {
+      throw new Error(`Only ${resolvedCount} painting URLs could be resolved. Check your internet connection.`);
+    }
+
+    await loadModels();
+    showLoading('surveying the masters', `comparing ${PAINTINGS.length} sitters across six centuries`);
+    await computePaintingDescriptors();
+
+    if (!STATE.paintingDescriptors || STATE.paintingDescriptors.length < 3) {
+      const got = STATE.paintingDescriptors ? STATE.paintingDescriptors.length : 0;
+      throw new Error(`Only ${got} of ${PAINTINGS.length} paintings could be loaded. Check your internet connection and reload the page. (Browser console will show which paintings failed.)`);
+    }
+
+    showLoading('considering your face', 'extracting your descriptor');
+    const userImg = await loadImageEl(dataUrl);
+    const detectorOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.3 });
+    const userResult = await faceapi
+      .detectSingleFace(userImg, detectorOpts)
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    if (!userResult || !userResult.descriptor) {
+      stopDots(); hideLoading();
+      showError("We couldn't find a face in that photograph. Try a clearer, forward-facing shot.");
+      return;
+    }
+    STATE.userDescriptor = userResult.descriptor;
+
+    showLoading('finding your sitter', 'measuring resemblance');
+    const distFn = (faceapi.euclideanDistance) ? faceapi.euclideanDistance : (a, b) => {
+      let s = 0;
+      for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+      return Math.sqrt(s);
+    };
+    let best = null, bestDist = Infinity;
+    for (const pd of STATE.paintingDescriptors) {
+      const d = distFn(STATE.userDescriptor, pd.descriptor);
+      if (d < bestDist) { bestDist = d; best = pd; }
+    }
+    const matched = PAINTINGS.find(p => p.id === best.id);
+    STATE.matchedPainting = matched;
+
+    stopDots(); hideLoading();
+    revealResult(matched, bestDist, dataUrl);
+  } catch (err) {
+    console.error(err);
+    stopDots(); hideLoading();
+    showError(err.message || 'Something went sideways. Please try again.');
+  }
+}
+
+/* RESULT */
+function similarityPercent(distance) {
+  const clamped = Math.max(0, Math.min(1.0, distance));
+  return Math.round((1 - clamped) * 100);
+}
+
+function revealResult(p, dist, userPhotoDataUrl) {
+  $('#paintingBg').style.backgroundImage = `url('${p.img}')`;
+  $('#userPhotoDisplay').src = userPhotoDataUrl;
+  $('#matchTitle').textContent = p.title;
+  $('#matchMeta').textContent = `${p.artist} · ${p.year}`;
+  $('#matchPct').textContent = similarityPercent(dist) + '%';
+
+  $('#labelBand').textContent = p.title.toUpperCase();
+  $('#labelBand').style.background = p.band;
+  $('#labelTitle').textContent = p.title;
+  $('#labelArtist').textContent = `${p.artist} · ${p.year}`;
+
+  $('#compositeSection').classList.remove('visible');
+  $('#compositeImg').classList.remove('loaded');
+  $('#compositeImg').style.display = 'none';
+  $('#compositeMeta').style.display = 'none';
+  $('#compositeLoading').style.display = '';
+
+  updateQuotaUi();
+
+  $('#page').style.display = 'none';
+  $('#result-view').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  $('#result-view').scrollTo({ top: 0 });
+}
+
+function resetToHome() {
+  $('#result-view').classList.remove('active');
+  $('#page').style.display = '';
+  document.body.style.overflow = '';
+  fileInput.value = '';
+  drop.style.display = '';
+  helperEl.style.display = '';
+  hideLoading();
+  clearError();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('#resetBtn').addEventListener('click', resetToHome);
+
+/* COMPOSITE */
+function getQuota() {
+  const today = new Date().toISOString().slice(0, 10);
+  let q = { date: today, used: 0 };
+  try {
+    const raw = localStorage.getItem(QUOTA_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.date === today) q = parsed;
+    }
+  } catch (e) {}
+  return q;
+}
+function setQuota(q) {
+  try { localStorage.setItem(QUOTA_KEY, JSON.stringify(q)); } catch (e) {}
+}
+function updateQuotaUi() {
+  const q = getQuota();
+  const remaining = Math.max(0, QUOTA_PER_DAY - q.used);
+  $('#quotaText').textContent = `${remaining} composite${remaining === 1 ? '' : 's'} remaining today`;
+  const btn = $('#compositeBtn');
+  btn.disabled = remaining === 0;
+  $('#compositeBtnText').textContent = remaining === 0 ? 'daily allowance spent' : 'Generate the composite';
+}
+
+function buildCompositePrompt(painting) {
+  return [
+    `Painterly oil portrait in the unmistakable style of ${painting.artist}, after "${painting.title}" (${painting.year}).`,
+    `${painting.style}.`,
+    `A new contemporary sitter — three-quarter view, soft daylight, dignified bearing, shoulders and head, plain dark ground.`,
+    `Visible brushwork, traditional canvas texture, museum-quality finish.`,
+    `Highly detailed, art history textbook quality, ornate gilded frame edges visible.`,
+    `No text, no watermark, no signature, no modern objects.`
+  ].join(' ');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Composite generation — calls our Cloudflare Worker which calls Replicate's
+// face-preserving Flux-PuLID model. The visitor's uploaded photo is sent so
+// their actual face is preserved in the composite.
+//
+// REPLACE the URL below with your deployed worker URL.
+// Set to null while developing locally to fall back to Pollinations.
+// ─────────────────────────────────────────────────────────────────────────────
+const WORKER_URL = 'https://sitter-backend.yanqi-projects.workers.dev'; // e.g. 'https://sitter-backend.yanqi-projects.workers.dev'
+
+// Rotating wait-time messages — single face-swap stage, takes 10-20s
+const WAIT_MESSAGES = [
+  'studying your features…',
+  'lifting your likeness onto the canvas…',
+  'blending into the master\'s brushwork…',
+  'placing the final stroke…',
+];
+
+$('#compositeBtn').addEventListener('click', async () => {
+  const q = getQuota();
+  if (q.used >= QUOTA_PER_DAY) return;
+
+  const p = STATE.matchedPainting;
+  if (!p) return;
+  if (!STATE.userPhotoDataUrl) {
+    showError("Your photo seems to have vanished. Please upload again from the start.");
+    return;
+  }
+
+  const btn = $('#compositeBtn');
+  const btnText = $('#compositeBtnText');
+  const customRequestInput = $('#customRequest');
+  const customRequest = (customRequestInput?.value || '').trim();
+  btn.disabled = true;
+
+  const prompt = buildCompositePrompt(p);
+
+  const sec = $('#compositeSection');
+  const img = $('#compositeImg');
+  const loadingEl = $('#compositeLoading');
+  const meta = $('#compositeMeta');
+
+  sec.classList.add('visible');
+  img.classList.remove('loaded');
+  img.style.display = 'none';
+  meta.style.display = 'none';
+  loadingEl.style.display = '';
+  loadingEl.textContent = WAIT_MESSAGES[0];
+  setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+
+  // Rotate through wait messages so the user knows something's happening
+  let waitIdx = 0;
+  const waitTimer = setInterval(() => {
+    waitIdx = (waitIdx + 1) % WAIT_MESSAGES.length;
+    loadingEl.textContent = WAIT_MESSAGES[waitIdx];
+  }, 7000);
+
+  const cleanup = () => {
+    clearInterval(waitTimer);
+    btn.disabled = false;
+  };
+
+  const showImage = (imageUrl, downloadName) => {
+    img.onload = () => {
+      cleanup();
+      loadingEl.style.display = 'none';
+      img.style.display = '';
+      requestAnimationFrame(() => img.classList.add('loaded'));
+      meta.style.display = '';
+      $('#compositeCaption').textContent = customRequest
+        ? `In the manner of ${p.artist}. ${customRequest}`
+        : `In the manner of ${p.artist}.`;
+      // Download / share button. Strategy:
+      //   1. Try Web Share API with files (best on iOS — gives native "Save to
+      //      Photos" / share sheet). Works on iOS Safari 15+, Chrome Android.
+      //   2. Fall back to blob-fetch + click trick (best on desktop browsers).
+      //   3. Last resort: open in new tab (user long-presses to save).
+      // Also set href so right-click → "Save as..." still works on desktop.
+      const dl = $('#compositeDownload');
+      dl.href = imageUrl;
+      dl.setAttribute('download', downloadName);
+      dl.onclick = async (e) => {
+        e.preventDefault();
+        const originalText = dl.textContent;
+        dl.textContent = 'preparing…';
+        dl.style.pointerEvents = 'none';
+        try {
+          // Always fetch the blob first — needed for both Web Share and the
+          // desktop click trick. The fetch itself usually works on iOS even
+          // when the `download` attribute doesn't.
+          const resp = await fetch(imageUrl, { mode: 'cors' });
+          if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
+          const blob = await resp.blob();
+
+          // Path A — Web Share API with files. iOS Safari supports this and
+          // it's the only way to get a real "Save to Photos" option there.
+          if (navigator.canShare && navigator.share) {
+            const file = new File([blob], downloadName, { type: blob.type || 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+              try {
+                await navigator.share({ files: [file], title: 'My SITTER composite' });
+                return; // user got the share sheet — done
+              } catch (shareErr) {
+                // User cancelled the share sheet, or share failed silently.
+                // AbortError = user closed the sheet, treat as success.
+                if (shareErr && shareErr.name === 'AbortError') return;
+                // Otherwise fall through to Path B.
+                console.warn('Web Share failed, falling back to blob download:', shareErr);
+              }
+            }
+          }
+
+          // Path B — blob download (works on desktop browsers).
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = downloadName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+        } catch (err) {
+          console.error('Download failed:', err);
+          // Path C — last resort: open in new tab so user can long-press
+          // (mobile) or right-click → Save As (desktop) to save manually.
+          window.open(imageUrl, '_blank', 'noopener,noreferrer');
+        } finally {
+          dl.textContent = originalText;
+          dl.style.pointerEvents = '';
+        }
+      };
+
+      btnText.textContent = 'generate another';
+
+      const cur = getQuota();
+      cur.used = (cur.used || 0) + 1;
+      setQuota(cur);
+      updateQuotaUi();
+    };
+    img.onerror = () => {
+      cleanup();
+      loadingEl.textContent = 'the composite would not develop. try again.';
+      btnText.textContent = 'try once more';
+    };
+    img.src = imageUrl;
+  };
+
+  // Path 1: worker configured → submit swap → poll → submit upscale → poll → show
+  if (WORKER_URL) {
+    try {
+      btnText.textContent = 'painting…';
+
+      // Helper: poll a Replicate prediction (via our worker) until done or timeout.
+      // Returns { ok: true, output } on success, { ok: false, reason } otherwise.
+      async function pollPrediction(predictionId, timeoutMs = 120_000, intervalMs = 3000) {
+        const startedAt = Date.now();
+        while (true) {
+          if (Date.now() - startedAt > timeoutMs) return { ok: false, reason: 'timeout' };
+          await new Promise(r => setTimeout(r, intervalMs));
+          try {
+            const pollResp = await fetch(WORKER_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'poll', predictionId }),
+            });
+            const pollData = await pollResp.json();
+            if (!pollResp.ok) {
+              console.warn('Poll request failed:', pollData);
+              continue;
+            }
+            if (pollData.status === 'succeeded') {
+              const url = Array.isArray(pollData.output) ? pollData.output[0] : pollData.output;
+              if (!url) return { ok: false, reason: 'no_output' };
+              return { ok: true, output: url };
+            }
+            if (pollData.status === 'failed' || pollData.status === 'canceled') {
+              return { ok: false, reason: pollData.status, detail: pollData.error };
+            }
+            // still 'starting' or 'processing' — keep polling
+          } catch (err) {
+            console.warn('Poll network error:', err);
+          }
+        }
+      }
+
+      // ── Stage 1 — submit face-swap ──────────────────────────────────────
+      const submitResp = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'submit_swap',
+          userPhoto: STATE.userPhotoDataUrl,
+          paintingId: p.id,
+        }),
+      });
+      const submitData = await submitResp.json();
+
+      if (!submitResp.ok) {
+        cleanup();
+        // Even if the worker returned a fallbackImage, don't show the unmodified
+        // scene — the whole point is the user's face being in it.
+        img.style.display = 'none';
+        img.classList.remove('loaded');
+        img.src = '';
+        meta.style.display = 'none';
+        loadingEl.style.display = '';
+        loadingEl.textContent = submitData.error === 'per-ip daily limit reached'
+          ? 'you have reached today\'s personal allowance. come back tomorrow.'
+          : submitData.error === 'site daily limit reached, try again tomorrow'
+            ? 'the gallery is full for today. come back tomorrow.'
+            : `the composite would not develop. ${submitData.error || 'please try again.'}`;
+        btnText.textContent = 'try once more';
+        console.error('Submit error:', submitData);
+        return;
+      }
+
+      const scenePreview = submitData.scenePreview;
+      const swapPredictionId = submitData.predictionId;
+      if (!swapPredictionId) {
+        cleanup();
+        loadingEl.textContent = 'something went wrong starting the painting.';
+        btnText.textContent = 'try once more';
+        console.error('No predictionId in swap submit response', submitData);
+        return;
+      }
+
+      // ── Stage 1 — poll face-swap ────────────────────────────────────────
+      const swapResult = await pollPrediction(swapPredictionId);
+      if (!swapResult.ok) {
+        console.warn('Face-swap did not succeed, hiding composite:', swapResult);
+        cleanup();
+        // Hide the composite area completely — don't show the unmodified scene,
+        // since the whole point is the user's face being there.
+        img.style.display = 'none';
+        img.classList.remove('loaded');
+        img.src = '';
+        meta.style.display = 'none';
+        loadingEl.style.display = '';
+        loadingEl.textContent = swapResult.reason === 'timeout'
+          ? 'the studio is overloaded right now. please try again in a moment.'
+          : 'the composite would not develop. please try again.';
+        btnText.textContent = 'try once more';
+        return;
+      }
+      showImage(swapResult.output, `sitter-${p.id}.png`);
+      return;
+    } catch (err) {
+      cleanup();
+      console.error('Worker call failed:', err);
+      loadingEl.textContent = 'connection to the studio failed. try again.';
+      btnText.textContent = 'try once more';
+      return;
+    }
+  }
+
+  // Path 2: no worker → fall back to Pollinations (free, but text-only — won't preserve your face)
+  btnText.textContent = 'painting…';
+  const promptWithCustom = customRequest ? `${prompt} ${customRequest}.` : prompt;
+  const seed = Math.floor(Math.random() * 1_000_000);
+  const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptWithCustom)}?width=768&height=960&nologo=true&enhance=true&seed=${seed}`;
+  showImage(fallbackUrl, `sitter-${p.id}.jpg`);
+});
+
+updateQuotaUi();
+</script>
+</body>
+</html>
