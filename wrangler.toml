@@ -1,0 +1,7 @@
+name = "sitter-backend"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "QUOTA"
+id = "22cef4ccb586429898cc59e842db9ec6"
