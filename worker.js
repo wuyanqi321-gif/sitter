@@ -18,7 +18,7 @@
  */
 
 const DAILY_CAP = 100;   // testing cap; lower before launch
-const PER_IP_CAP = 3;   // raised for testing; lower before launch
+const PER_IP_CAP = 4;   // raised for testing; lower before launch
 
 const BASE_SCENES = {
   // index: 0 = the leftmost face the model detects, 1 = the next one to the right
