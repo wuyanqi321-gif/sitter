@@ -60,6 +60,7 @@ export default {
     const action = String(body.action || 'submit_swap');
 
     if (action === 'poll') return handlePoll(body, env);
+    if (action === 'read_stats') return handleReadStats(body, env);
     return handleSubmitSwap(body, request, env, ctx);
   },
 };
@@ -147,6 +148,24 @@ async function handleSubmitSwap(body, request, env, ctx) {
     env.QUOTA.put(ipKey, String(ipUsed + 1), { expirationTtl: 60 * 60 * 26 }),
     env.QUOTA.put(globalKey, String(globalUsed + 1), { expirationTtl: 60 * 60 * 26 }),
   ]));
+
+  // Bump stats counters: per-day total and per-day per-painting
+  ctx.waitUntil((async () => {
+    const totalKey = `stats:total:${today}`;
+    const paintingKey = `stats:painting:${today}:${paintingId}`;
+    const [totalRaw, paintingRaw] = await Promise.all([
+      env.QUOTA.get(totalKey),
+      env.QUOTA.get(paintingKey),
+    ]);
+    const total = parseInt(totalRaw || '0', 10) + 1;
+    const painting = parseInt(paintingRaw || '0', 10) + 1;
+    // 90 days retention so old stats clean themselves up
+    const ttl = 60 * 60 * 24 * 90;
+    await Promise.all([
+      env.QUOTA.put(totalKey, String(total), { expirationTtl: ttl }),
+      env.QUOTA.put(paintingKey, String(painting), { expirationTtl: ttl }),
+    ]);
+  })());
 
   return json({
     predictionId: prediction.id,
