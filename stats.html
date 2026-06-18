@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SITTER stats</title>
+  <style>
+    body { font-family: monospace; padding: 2em; max-width: 800px; }
+    input, button { font-size: 16px; padding: 8px; margin-right: 8px; }
+    pre { background: #f5f5f5; padding: 1em; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>SITTER stats</h1>
+  <input id="pw" type="password" placeholder="stats password" />
+  <input id="days" type="number" value="7" min="1" max="30" />
+  <button onclick="load()">Load stats</button>
+  <pre id="out">Click "Load stats" to fetch.</pre>
+  <script>
+    async function load() {
+      const password = document.getElementById('pw').value;
+      const days = parseInt(document.getElementById('days').value, 10);
+      try {
+        const r = await fetch('https://sitter-backend.wuyanqi321.workers.dev', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'read_stats', password, days })
+        });
+        const j = await r.json();
+        document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+      } catch (e) {
+        document.getElementById('out').textContent = 'Error: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

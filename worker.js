@@ -202,6 +202,45 @@ async function handlePoll(body, env) {
   }
 }
 
+// ─── READ STATS ───────────────────────────────────────────────────────────────
+async function handleReadStats(body, env) {
+  // Password gate: only respond if the correct password is provided
+  if (body.password !== env.STATS_PASSWORD) {
+    return json({ error: 'unauthorized' }, 401, env);
+  }
+
+  // Default to last 7 days if not specified
+  const days = Math.min(parseInt(body.days || '7', 10), 30);
+  const today = new Date();
+
+  // Walk back N days, collect daily totals and painting breakdowns
+  const daily = [];
+  const paintingTotals = {};
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+
+    const totalRaw = await env.QUOTA.get(`stats:total:${dateStr}`);
+    const dayTotal = parseInt(totalRaw || '0', 10);
+    daily.push({ date: dateStr, composites: dayTotal });
+
+    // Also fetch per-painting for this day
+    const list = await env.QUOTA.list({ prefix: `stats:painting:${dateStr}:` });
+    for (const k of list.keys) {
+      const paintingId = k.name.split(':').pop();
+      const cntRaw = await env.QUOTA.get(k.name);
+      const cnt = parseInt(cntRaw || '0', 10);
+      paintingTotals[paintingId] = (paintingTotals[paintingId] || 0) + cnt;
+    }
+  }
+
+  const total = daily.reduce((sum, d) => sum + d.composites, 0);
+
+  return json({ days, total, daily, paintings: paintingTotals }, 200, env);
+}
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function corsHeaders(env) {
   return {
